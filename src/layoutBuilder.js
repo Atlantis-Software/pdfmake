@@ -52,8 +52,10 @@ LayoutBuilder.prototype.registerTableLayouts = function(tableLayouts) {
  * @param {Object} defaultStyle default style definition
  * @return {Array} an array of pages
  */
-LayoutBuilder.prototype.layoutDocument = function(docStructure, fontProvider, styleDictionary, defaultStyle, background, header, footer, images, watermark, pageBreakBeforeFct, cb) {
+LayoutBuilder.prototype.layoutDocument = function(docStructure, fontProvider, styleDictionary, defaultStyle, background, header, footer, images, watermark, pageBreakBeforeFct, progressCallback, cb) {
   var self = this;
+  this.progressCallback = progressCallback || function () {};
+  this.processed = 0;
 
   function addPageBreaksIfNecessary(linearNodeList, pages) {
 
@@ -136,7 +138,8 @@ LayoutBuilder.prototype.tryLayoutDocument = function(docStructure, fontProvider,
   this.linearNodeList = [];
   this.processed = 0;
   docStructure = this.docPreprocessor.preprocessDocument(docStructure);
-  docStructure = this.docMeasure.measureDocument(docStructure, function(err, docStructure) {
+  this.nodeCount = this.docPreprocessor.nodeCount;
+  docStructure = this.docMeasure.measureDocument(docStructure, this.nodeCount, this.progressCallback, function(err, docStructure) {
     if (err) {
       return cb(err);
     }
@@ -334,6 +337,8 @@ function decorateNode(node) {
 
 LayoutBuilder.prototype.processNode = function(node) {
   var self = this;
+  ++this.processed;
+  this.progressCallback((this.processed/this.nodeCount) * 0.1 + 0.2);
 
   this.linearNodeList.push(node);
   decorateNode(node);

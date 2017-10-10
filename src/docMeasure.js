@@ -26,12 +26,16 @@ function DocMeasure(fontProvider, styleDictionary, defaultStyle, imageMeasure, t
  * @param  {Object} docStructure document-definition-object
  * @return {Object}              document-measurement-object
  */
-DocMeasure.prototype.measureDocument = function(docStructure, cb) {
+DocMeasure.prototype.measureDocument = function(docStructure, nodeCount, progressCallback, cb) {
+  this.nodeCount = nodeCount;
+  this.measured = 0;
+  this.progressCallback = progressCallback || function() {};
   return this.measureNode(docStructure, cb);
 };
 
 DocMeasure.prototype.measureNode = function(node, callback) {
-
+  ++this.measured;
+  this.progressCallback((this.measured / this.nodeCount) * 0.2);
   var self = this;
 
   return this.styleStack.asyncAuto(node, function(cb) {
@@ -619,6 +623,31 @@ DocMeasure.prototype.measureColumns = function(node, cb) {
 
 DocMeasure.prototype.measureTable = function(node, cb) {
   var self = this;
+
+  function markSpans(rowData, col, span) {
+    for (var i = 1; i < span; i++) {
+      ++self.measured;
+      rowData[col + i] = {
+        _span: true,
+        _minWidth: 0,
+        _maxWidth: 0,
+        rowSpan: rowData[col].rowSpan
+      };
+    }
+  }
+
+  function markVSpans(table, row, col, span) {
+    for (var i = 1; i < span; i++) {
+      ++self.measured;
+      table.body[row + i][col] = {
+        _span: true,
+        _minWidth: 0,
+        _maxWidth: 0,
+        fillColor: table.body[row][col].fillColor
+      };
+    }
+  }
+
   extendTableWidths(node);
   node._layout = getLayout(this.tableLayouts);
   node._offsets = getOffsets(node._layout);
@@ -804,28 +833,6 @@ DocMeasure.prototype.measureTable = function(node, cb) {
     }
 
     return result;
-  }
-
-  function markSpans(rowData, col, span) {
-    for (var i = 1; i < span; i++) {
-      rowData[col + i] = {
-        _span: true,
-        _minWidth: 0,
-        _maxWidth: 0,
-        rowSpan: rowData[col].rowSpan
-      };
-    }
-  }
-
-  function markVSpans(table, row, col, span) {
-    for (var i = 1; i < span; i++) {
-      table.body[row + i][col] = {
-        _span: true,
-        _minWidth: 0,
-        _maxWidth: 0,
-        fillColor: table.body[row][col].fillColor
-      };
-    }
   }
 
   function extendTableWidths(node) {

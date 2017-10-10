@@ -4,7 +4,7 @@
 var fontStringify = require('./helpers').fontStringify;
 
 function DocPreprocessor() {
-
+  this.nodeCount = 0;
 }
 
 DocPreprocessor.prototype.preprocessDocument = function (docStructure) {
@@ -13,6 +13,7 @@ DocPreprocessor.prototype.preprocessDocument = function (docStructure) {
 };
 
 DocPreprocessor.prototype.preprocessNode = function (node) {
+  ++this.nodeCount;
 	// expand shortcuts and casting values
 	if (Array.isArray(node)) {
 		node = {stack: node};
