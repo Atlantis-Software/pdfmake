@@ -9,18 +9,23 @@ function ImageMeasure(pdfKitDoc, imageDictionary) {
   this.imageDictionary = imageDictionary || {};
 }
 
-ImageMeasure.prototype.measureImage = function(src) {
+ImageMeasure.prototype.measureImage = function(src, cb) {
   var that = this;
-  var image = realImageSrc(src);
+  var image;
+  try {
+    image = realImageSrc(src);
+  } catch(e) {
+    return cb(e);
+  }
 
   if (this.pdfKitDoc._imageRegistry[src]) {
-    return { width: this.pdfKitDoc._imageRegistry[src].width, height: this.pdfKitDoc._imageRegistry[src].height };
+    return cb(null, { width: this.pdfKitDoc._imageRegistry[src].width, height: this.pdfKitDoc._imageRegistry[src].height });
   }
 
   // check if buffer is a PNG
   if (Buffer.isBuffer(image) && image[0] === 0x89 && image[1] === 0x50 && image[2] === 0x4E && image[3] === 0x47) {
     // read PNG dimension directly from IHDR
-    return { width: image.readIntBE(16, 4), height: image.readIntBE(20, 4) };
+    return cb(null, { width: image.readIntBE(16, 4), height: image.readIntBE(20, 4) });
   }
 
   // check if buffer is a JPG
@@ -29,17 +34,17 @@ ImageMeasure.prototype.measureImage = function(src) {
     while (i < image.length - 8) {
       i += image.readUInt16BE(i);
       if (image[i] !== 255) {
-        throw new Error('invalid image jpg format');
+        return cb(new Error('invalid image jpg format'));
       }
       // Search JPG SOF
       if (image[i + 1] === 192 || image[i + 1] === 193 || image[i + 1] === 194) {
-        return { width: image.readUInt16BE(i + 7), height: image.readUInt16BE(i + 5) };
+        return cb(null, { width: image.readUInt16BE(i + 7), height: image.readUInt16BE(i + 5) });
       }
       i += 2;
     }
   }
 
-  throw new Error('invalid image format, images should be in jpeg or png format');
+  return cb(new Error('invalid image format, images should be in jpeg or png format'));
 
   function realImageSrc(src) {
     // check if src is already a Buffer
