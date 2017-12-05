@@ -303,7 +303,6 @@ ElementWriter.prototype.pushContext = function (contextOrWidth, height) {
 		height = this.context.getCurrentPage().height - this.context.pageMargins.top - this.context.pageMargins.bottom;
 		contextOrWidth = this.context.availableWidth;
 	}
-
 	if (typeof contextOrWidth === 'number' || contextOrWidth instanceof Number) {
 		contextOrWidth = new DocumentContext({width: contextOrWidth, height: height}, {left: 0, right: 0, top: 0, bottom: 0});
 	}

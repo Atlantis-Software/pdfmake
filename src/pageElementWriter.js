@@ -111,7 +111,6 @@ PageElementWriter.prototype.commitUnbreakableBlock = function (forcedX, forcedY)
 			} else {
 				fragment.height = unbreakableContext.y;
 			}
-
 			if (forcedX !== undefined || forcedY !== undefined) {
 				this.writer.addFragment(fragment, true, true, true);
 			} else {

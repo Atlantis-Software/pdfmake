@@ -111,7 +111,7 @@ PdfPrinter.prototype.createPdfKitDocument = function (docDefinition, options) {
 	if (options.tableLayouts) {
 		builder.registerTableLayouts(options.tableLayouts);
 	}
-  var pages = builder.layoutDocument(docDefinition.content, this.fontProvider, docDefinition.styles || {}, docDefinition.defaultStyle || { fontSize: 12, font: 'Roboto' }, docDefinition.background, docDefinition.header, docDefinition.footer, docDefinition.images, docDefinition.watermark, docDefinition.pageBreakBefore, options.progressCallback, function(err, pages) {
+  builder.layoutDocument(docDefinition.content, this.fontProvider, docDefinition.styles || {}, docDefinition.defaultStyle || { fontSize: 12, font: 'Roboto' }, docDefinition.background, docDefinition.header, docDefinition.footer, docDefinition.images, docDefinition.watermark, docDefinition.pageBreakBefore, options.progressCallback, function(err, pages) {
     if (err) {
       return self.pdfKitDoc.emit('error', err);
     }
